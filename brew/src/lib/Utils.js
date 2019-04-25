@@ -28,3 +28,11 @@ export function XhrFilesUpload(files, host, onFinish, onProgress) {
     xhr.open("POST", host, true);
     xhr.send(formData);
 }
+
+export function getTextDate(date) {
+    let daysMap = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+    const monthsMap = ['Янв.', 'Фев.', 'Март', 'Апр.', 'Май', 'Июн.', 'Июл.', 'Авг.', 'Сент.', 'Окт.', 'Ноя.'];
+    let day = daysMap[date.getDay()];
+    let month = monthsMap[date.getMonth()];
+    return day + ', ' + date.getDate() + ' ' + month;
+}
