@@ -30,9 +30,11 @@ export function XhrFilesUpload(files, host, onFinish, onProgress) {
 }
 
 export function getTextDate(date) {
-    let daysMap = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+    let daysMap = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
     const monthsMap = ['Янв.', 'Фев.', 'Март', 'Апр.', 'Май', 'Июн.', 'Июл.', 'Авг.', 'Сент.', 'Окт.', 'Ноя.'];
     let day = daysMap[date.getDay()];
     let month = monthsMap[date.getMonth()];
     return day + ', ' + date.getDate() + ' ' + month;
 }
+
+export const SERVER_URL = "http://localhost:3000";

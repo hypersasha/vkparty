@@ -11,6 +11,12 @@ class HomeScreen extends Component {
     constructor(props) {
         super(props);
 
+        this.openParty = this.openParty.bind(this);
+    }
+
+    openParty(party_id) {
+        window.location.hash = party_id;
+        this.props.onChangePanel('party-info');
     }
 
     render() {
@@ -19,11 +25,11 @@ class HomeScreen extends Component {
                 <PanelHeader
                     left={<HeaderButton onClick={() => { this.props.onChangeView('newParty'); }}><Icon24Add/></HeaderButton>}>
                     <div className="rave--header-title">
-                        <Icon24LogoVk/>
-                        <span>Rave</span>
+                        {/*<Icon24LogoVk/>*/}
+                        <span>Мои события</span>
                     </div>
                 </PanelHeader>
-                <Group title={"будущие вечеринки"}>
+                <Group title={"ближайшие события"}>
                     <List>
                         <Cell
                             before={<Avatar
@@ -35,6 +41,7 @@ class HomeScreen extends Component {
                             bottomContent={
                                 <div className="rave--event-date">В эту пятницу, 22 апр.</div>
                             }
+                            onClick={() => {this.openParty('4t801o5pmcbhdjrpawra3woctwckbcbe')}}
                         >
                             Кукинг стрэм
                         </Cell>
@@ -51,31 +58,6 @@ class HomeScreen extends Component {
                             }
                         >
                             Вечер кино
-                        </Cell>
-                    </List>
-                </Group>
-                <Footer>2 вечеринки</Footer>
-                <Group title={"прошедшие вечеринки"}>
-                    <List>
-                        <Cell
-                            before={<Avatar
-                                src={"https://www.tasteofhome.com/wp-content/uploads/2017/10/exps28800_UG143377D12_18_1b_RMS-696x696.jpg"}
-                                size={48}/>}
-                            expandable={true}
-                            size="m"
-                            description={"В прошлую среду"}
-                        >
-                            ТЫ + Бургер
-                        </Cell>
-                        <Cell
-                            before={<Avatar
-                                src={"https://www.smileexpo.ru/public/upload/news/poker_v_kazahstane_14346151523064_image.jpg"}
-                                size={48}/>}
-                            expandable={true}
-                            size="m"
-                            description={"два месяца назад"}
-                        >
-                            Покер Старз
                         </Cell>
                     </List>
                 </Group>
