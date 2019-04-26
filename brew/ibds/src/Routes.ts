@@ -2,6 +2,7 @@ import {Request, Response, Application, response} from "express";
 import * as fs from "fs";
 import * as path from "path";
 import * as Busboy from "busboy";
+import * as bodyParser from "body-parser";
 
 import axios from "axios";
 
@@ -13,6 +14,9 @@ import {VKPartyResponse} from "./VKPartyResponse";
 export class Routes {
 
     public routes(app: Application, MongoDB : Mongo): void {
+
+        app.use(bodyParser.json());
+        app.use(bodyParser.urlencoded({extended: true}));
 
         // Allow Cross-Origin access to this server.
         app.use(function (req, res, next) {
@@ -53,13 +57,23 @@ export class Routes {
         });
 
         app.get('/party', (req, res) => {
-            MongoDB.getParty(req.query.pid, req.query.user_id)
-                .then((response) => {
+            MongoDB.getParty(req.query.pid, parseInt(req.query.user_id, 10))
+                .then((response : VKPartyResponse) => {
                     res.send(response);
                 })
-                .catch((response) => {
+                .catch((response : VKPartyResponse) => {
                     res.send(response);
                 })
+        });
+
+        app.get('/parties', (req, res) => {
+           MongoDB.getParties(parseInt(req.query.user_id))
+               .then((response : VKPartyResponse) => {
+                   res.send(response);
+               })
+               .catch((error : VKPartyResponse) => {
+                   res.send(error);
+               })
         });
 
         // Uploads a new file on the server.
@@ -102,7 +116,7 @@ export class Routes {
 
             let partyId : string = this.makeid(32);
 
-           MongoDB.addNewParty(partyId, req.query.title, parseInt(req.query.user_id, 10), req.query.date, (req.query.isPrivate == "true"))
+           MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, req.body.isPrivate)
                .then((response : any) => {
                    res.send(response);
                })
@@ -112,7 +126,7 @@ export class Routes {
         });
 
         app.post('/movie', (req, res) => {
-           MongoDB.addMovieToParty(parseInt(req.query.mid,10), req.query.pid, parseInt(req.query.user_id, 10))
+           MongoDB.addMovieToParty(req.body.mid, req.body.pid, req.body.user_id)
                .then((response : any) => {
                    res.send(response);
                })
