@@ -10,6 +10,7 @@ import {FileUploader} from "./RequestHandlers/FileUploader";
 import {Movie} from "./Movie";
 import {Mongo} from "./Mongo";
 import {VKPartyResponse} from "./VKPartyResponse";
+import {VKPartyMovie} from "./Types";
 
 export class Routes {
 
@@ -44,7 +45,8 @@ export class Routes {
                         let result = response.data.results;
                         let movies_to_send : Array<object> = [];
                         result.forEach((movie : any) => {
-                            movies_to_send.push(new Movie(movie.id, movie.title, movie.poster_path, movie.vote_average, movie.release_date));
+                            let movie_to_push : VKPartyMovie = {mid : movie.id, title : movie.title, poster_url : movie.poster_path, score : movie.vote_average, release : movie.release_date}
+                            movies_to_send.push(movie_to_push);
                         });
                         res.send(new VKPartyResponse(true, "Movies matching your query", movies_to_send));
                     }

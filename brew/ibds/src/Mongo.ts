@@ -28,14 +28,14 @@ export class Mongo {
         return new Promise((resolve, reject) => {
             let owner : VKUser;
             this.getVkUser(user_id)
-                .then((VkUserResponse) => {
-                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : [], date: new Date(date), private: isPrivate};
+                .then((VkUserResponse : VKUser) => {
+                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : [1343], date: new Date(date), private: isPrivate};
                     this.db.collection("parties").insertOne(myobj, (err, res) => {
                         if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
                         resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
                     })
                 })
-                .catch((error) => {
+                .catch((error : VKPartyResponse) => {
                     resolve(error);
                 })
         });
@@ -47,24 +47,24 @@ export class Mongo {
                 if (err) reject(new VKPartyResponse(false, "Can't get party with given id", {party_id: party_id}));
                 if (!document.movies) {
                     this.getVkPartyMovie(movie_id)
-                        .then((VkPartyMovieResponse) => {
+                        .then((VkPartyMovieResponse : VKPartyMovie) => {
                             this.getVkUser(user_id)
-                                .then((VkUserResponse) => {
+                                .then((VkUserResponse : VKUser) => {
                                     let detailed_movie = new Movie(VkPartyMovieResponse, VkUserResponse);
                                     this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {movies: detailed_movie}}, (err, res) => {
                                         if (err) reject(new VKPartyResponse(false, "Error in database while adding movie to party", {error: err}));
                                         resolve(new VKPartyResponse(true, "Movie was added to party!", detailed_movie));
                                     })
                                 })
-                                .catch((error) => {
+                                .catch((error : VKPartyResponse) => {
                                     reject(error);
                                 })
                         })
-                        .catch((error) => {
+                        .catch((error : VKPartyResponse) => {
                             reject(error);
                         })
                 } else {
-                    Promise.all(document.movies.map((movie_info) => {
+                    Promise.all(document.movies.map((movie_info : any) => {
                             return new Promise((res, rej) => {
                                 if (movie_info.movie.mid === movie_id)
                                     rej(new VKPartyResponse(false, "This movie was already added", movie_info));
@@ -75,20 +75,20 @@ export class Mongo {
                         })
                     ).then(() => {
                         this.getVkPartyMovie(movie_id)
-                            .then((VkPartyMovieResponse) => {
+                            .then((VkPartyMovieResponse : VKPartyMovie) => {
                                 this.getVkUser(user_id)
-                                    .then((VkUserResponse) => {
+                                    .then((VkUserResponse : VKUser) => {
                                         let detailed_movie = new Movie(VkPartyMovieResponse, VkUserResponse);
                                         this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {movies: detailed_movie}}, (err, res) => {
                                             if (err) reject(new VKPartyResponse(false, "Error in database while adding movie to party", {error: err}));
                                             resolve(new VKPartyResponse(true, "Movie was added to party!", detailed_movie));
                                         })
                                     })
-                                    .catch((error) => {
+                                    .catch((error : VKPartyResponse) => {
                                         reject(error);
                                     })
                             })
-                            .catch((error) => {
+                            .catch((error : VKPartyResponse) => {
                                 reject(error);
                             })
                     }).catch((error) => {
