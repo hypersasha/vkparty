@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import {Avatar, Button, Cell, Div, Footer, Group, Header, Link, List} from "@vkontakte/vkui/src";
 import CreatePartyForm from "../NewParty/CreatePartyForm";
+import PropTypes from 'prop-types';
+import {getTextDate} from "../../../lib/Utils";
 
 class PartyInfo extends Component {
     constructor(props) {
@@ -8,6 +10,18 @@ class PartyInfo extends Component {
     }
 
     render() {
+
+        let objectDate = null;
+        let date = this.props.date;
+        let optionDate = null;
+        if (!this.props.date) {
+            date = "Дата не указана";
+        } else {
+            objectDate = new Date(date);
+            date = getTextDate(objectDate);
+            optionDate = objectDate.getFullYear() + '-' + (objectDate.getMonth()+1) + '-' + objectDate.getDate();
+        }
+
         return(
             <div id="mainInfo">
                 <Group style={{marginTop: 60}}>
@@ -16,12 +30,12 @@ class PartyInfo extends Component {
                             src={"https://www.tasteofhome.com/wp-content/uploads/2017/10/Six-Layer-Dinner_exps6019_W101973175B07_06_3bC_RMS-2.jpg"}
                             size={80}/>}
                         size="l"
-                        description={"Николай Таранов"}
+                        description={this.props.owner || "Организатор"}
                         bottomContent={
-                            <div className="rave--event-date">Пятница, 22 апр. 2019</div>
+                            <div className="rave--event-date">{date}</div>
                         }
                     >
-                        Кукинг стрэм
+                        {this.props.title}
                     </Cell>
                 </Group>
                 <Group description={"Люди, отмеченные серым цветом, не подтвердили своего участия."}>
@@ -63,9 +77,9 @@ class PartyInfo extends Component {
                         onSubmit={(formData) => {
                             console.log(formData)
                         }}
-                        title={"Кукинг стрэм"}
-                        date={"2019-4-29"}
-                        private={true}
+                        title={this.props.title}
+                        date={optionDate}
+                        private={this.props.private}
                         submitButtonText={"Сохранить"}
                     />
                 </Group>
@@ -73,5 +87,16 @@ class PartyInfo extends Component {
         );
     }
 }
+
+PartyInfo.propTypes = {
+    date: PropTypes.string,
+    title: PropTypes.string,
+    private: PropTypes.bool
+};
+
+PartyInfo.defaultProps = {
+    title: "Без Названия",
+    private: false
+};
 
 export default PartyInfo;
