@@ -2,8 +2,7 @@ import {Db, MongoClient} from "mongodb";
 import axios from "axios";
 import {Movie} from "./Movie";
 import {VKPartyResponse} from "./VKPartyResponse";
-import {VKUser} from "./VKUser";
-import {MovieInParty} from "./Types";
+import {VKPartyMovie, VKUser} from "./Types";
 
 const db_name = "vkpartydb";
 
@@ -27,38 +26,123 @@ export class Mongo {
     //TODO: Change "any" type to something specific
     addNewParty(party_id: string, title: string, user_id: number, date: string, isPrivate: boolean): any {
         return new Promise((resolve, reject) => {
-            let myobj = {pid: party_id, title: title, owner_id: user_id, date: new Date(date), private: isPrivate};
-            this.db.collection("parties").insertOne(myobj, (err, res) => {
-                if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
-                resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
-            })
+            let owner : VKUser;
+            this.getVkUser(user_id)
+                .then((VkUserResponse) => {
+                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : [], date: new Date(date), private: isPrivate};
+                    this.db.collection("parties").insertOne(myobj, (err, res) => {
+                        if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
+                        resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
+                    })
+                })
+                .catch((error) => {
+                    resolve(error);
+                })
         });
     };
 
     addMovieToParty(movie_id: number, party_id: string, user_id: number): any {
         return new Promise((resolve, reject) => {
-            let myobj = {movie: movie_id, user: user_id};
-            this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {movies: myobj}}, (err, res) => {
-                if (err) reject(new VKPartyResponse(false, "Error in database while adding movie to party", {error: err}));
-                if (res.result.nModified === 0) {
-                    reject(new VKPartyResponse(false, "This movie is already added to this party!", {}));
-                } else {
-                    let url: string = "https://api.themoviedb.org/3/movie/" + movie_id + "?api_key=" + process.env.API_KEY + "&language=ru-RU";
-                    axios.get(url)
-                        .then((response) => {
-                            let movie = response.data;
-                            let VKPartyMovie: Movie = new Movie(movie.id, movie.title, movie.poster_path, movie.vote_average, movie.release_date);
-                            this.db.collection("movies").updateOne({m_id: movie.id}, {$set: VKPartyMovie}, {upsert: true}, (err, res) => {
-                                if (err) reject(new VKPartyResponse(false, "Error while adding movie to movies collection in database", {error: err}));
-                                resolve(new VKPartyResponse(true, "Movie was added to party!", VKPartyMovie));
-                            })
+            this.db.collection("parties").findOne({pid: party_id}, (err, document) => {
+                if (err) reject(new VKPartyResponse(false, "Can't get party with given id", {party_id: party_id}));
+                if (!document.movies) {
+                    this.getVkPartyMovie(movie_id)
+                        .then((VkPartyMovieResponse) => {
+                            this.getVkUser(user_id)
+                                .then((VkUserResponse) => {
+                                    let detailed_movie = new Movie(VkPartyMovieResponse, VkUserResponse);
+                                    this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {movies: detailed_movie}}, (err, res) => {
+                                        if (err) reject(new VKPartyResponse(false, "Error in database while adding movie to party", {error: err}));
+                                        resolve(new VKPartyResponse(true, "Movie was added to party!", detailed_movie));
+                                    })
+                                })
+                                .catch((error) => {
+                                    reject(error);
+                                })
                         })
                         .catch((error) => {
-                            reject(new VKPartyResponse(false, "Error while attempting to get movie information from THEMOOVIEDB", {error: error}));
+                            reject(error);
                         })
+                } else {
+                    Promise.all(document.movies.map((movie_info) => {
+                            return new Promise((res, rej) => {
+                                if (movie_info.movie.mid === movie_id)
+                                    rej(new VKPartyResponse(false, "This movie was already added", movie_info));
+                                else {
+                                    res();
+                                }
+                            });
+                        })
+                    ).then(() => {
+                        this.getVkPartyMovie(movie_id)
+                            .then((VkPartyMovieResponse) => {
+                                this.getVkUser(user_id)
+                                    .then((VkUserResponse) => {
+                                        let detailed_movie = new Movie(VkPartyMovieResponse, VkUserResponse);
+                                        this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {movies: detailed_movie}}, (err, res) => {
+                                            if (err) reject(new VKPartyResponse(false, "Error in database while adding movie to party", {error: err}));
+                                            resolve(new VKPartyResponse(true, "Movie was added to party!", detailed_movie));
+                                        })
+                                    })
+                                    .catch((error) => {
+                                        reject(error);
+                                    })
+                            })
+                            .catch((error) => {
+                                reject(error);
+                            })
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 }
-            })
+            });
         })
+    }
+
+    getVkPartyMovie(movie_id: number): any {
+        return new Promise((resolve, reject) => {
+            let url: string = "https://api.themoviedb.org/3/movie/" + movie_id + "?api_key=" + process.env.API_KEY + "&language=ru-RU";
+            axios.get(url)
+                .then((response) => {
+                    let movie = response.data;
+                    let VKPartyMovie: VKPartyMovie = {
+                        mid: movie.id,
+                        title: movie.title,
+                        poster_url: movie.poster_path,
+                        score: movie.vote_average,
+                        release: movie.release_date
+                    };
+                    resolve(VKPartyMovie);
+                })
+                .catch((error) => {
+                    reject(new VKPartyResponse(false, "Error while attempting to get movie information from THEMOOVIEDB", {error: error}));
+                })
+
+        })
+    }
+
+    getVkUser(user_id: number): any {
+        return new Promise((resolve, reject) => {
+            let url: string = "https://api.vk.com/method/users.get?fields=photo_200&user_ids=" + user_id + "&lang=ru&access_token=c98a4fd9c98a4fd9c98a4fd965c9e3a00ccc98ac98a4fd9953bc044101305f6e12bc00f&v=5.95";
+            axios.get(url)
+                .then((response) => {
+                    if (response.data.response.length === 0) {
+                        reject(new VKPartyResponse(false, "No VK user found who offered this movie", {}));
+                    } else {
+                        let user = response.data.response[0];
+                        let vk_user: VKUser = {
+                            user_id: user.id,
+                            first_name: user.first_name,
+                            last_name: user.last_name,
+                            photo: user.photo_200
+                        };
+                        resolve(vk_user);
+                    }
+                })
+                .catch((error) => {
+                    reject(new VKPartyResponse(false, "Error while trying to find VK user who offered this movie", {error: error}))
+                })
+        });
     }
 
     getParty(party_id: string, user_id: number): any {
@@ -67,47 +151,12 @@ export class Mongo {
                 if (err) reject(new VKPartyResponse(false, "Error while trying to find party in database", {error: err}));
                 if (document === null) {
                     reject(new VKPartyResponse(false, "No party was found with given id", {}))
-                } else if (!document.movies) {
-                    resolve(new VKPartyResponse(true, "Party was found!", document));
                 }
                 //Check if user has access to the party
-                else if (document.private && ((document.guests && document.guests.includes(user_id) === false) && user_id !== document.owner_id)) {
+                else if (document.private && (document.guests.includes(user_id) === false && user_id !== document.owner.user_id)) {
                     reject(new VKPartyResponse(false, "You don't have access to this party", {}));
                 } else {
-                    Promise.all(document.movies.map((item: MovieInParty) => {
-                        return new Promise((res, rej) => {
-                            let result_object = {movie: {}, user: {}};
-                            this.db.collection("movies").findOne({m_id: item.movie}, {projection: {_id: 0}}, (err, document) => {
-                                if (err) rej(new VKPartyResponse(false, "Error while trying to find full movie info in database to add it to full party information", {error: err}));
-                                if (document === null) {
-                                    rej(new VKPartyResponse(false, "No movie was found with given id in movies collection", {}))
-                                } else {
-                                    result_object.movie = document;
-                                    let url: string = "https://api.vk.com/method/users.get?fields=photo_200&user_ids=" + item.user + "&lang=ru&access_token=c98a4fd9c98a4fd9c98a4fd965c9e3a00ccc98ac98a4fd9953bc044101305f6e12bc00f&v=5.95";
-                                    axios.get(url)
-                                        .then((response) => {
-                                            if (response.data.response.length === 0) {
-                                                rej(new VKPartyResponse(false, "No VK user found who offered" + document.title, {movie_id: document.m_id}))
-                                            } else {
-                                                let user = response.data.response[0];
-                                                result_object.user = new VKUser(user.id, user.first_name, user.last_name, user.photo_200);
-                                                res(result_object);
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            rej(new VKPartyResponse(false, "Error while trying to find VK user who offered" + document.ttile, {error: error}))
-                                        })
-                                }
-                            })
-                        });
-                    })).then((response) => {
-                        let detailed_document = document;
-                        detailed_document.movies = response;
-                        resolve(new VKPartyResponse(true, "Party was found!", detailed_document));
-                    })
-                        .catch((error) => {
-                            reject(error)
-                        });
+                    resolve(new VKPartyResponse(true, "Party was found!", document));
                 }
             });
         });
@@ -119,7 +168,7 @@ export class Mongo {
                 $and: [{
                     $or:
                         [
-                            {owner_id: user_id},
+                            {"owner.user_id": user_id},
                             {guests: [user_id]}
 
                         ]
@@ -132,12 +181,12 @@ export class Mongo {
                     reject(new VKPartyResponse(false, "No parties were found for user with this id", {user_id: user_id}))
                 } else {
                     Promise.all(results.map((party) => {
-                        return new Promise ((res, rej) => {
+                        return new Promise((res, rej) => {
                             this.getParty(party.pid, user_id)
-                                .then((getPartyResponse : VKPartyResponse) => {
+                                .then((getPartyResponse: VKPartyResponse) => {
                                     res(getPartyResponse.data);
                                 })
-                                .catch((getPartyResponse : VKPartyResponse) => {
+                                .catch((getPartyResponse: VKPartyResponse) => {
                                     rej(getPartyResponse);
                                 })
                         })
@@ -145,7 +194,7 @@ export class Mongo {
                         .then((response) => {
                             resolve(new VKPartyResponse(true, "Upcoming parties for this user", response))
                         })
-                        .catch ((error) => {
+                        .catch((error) => {
                             reject(error);
                         })
                 }
