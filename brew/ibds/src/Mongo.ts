@@ -3,6 +3,7 @@ import axios from "axios";
 import {Movie} from "./Movie";
 import {VKPartyResponse} from "./VKPartyResponse";
 import {VKUser} from "./VKUser";
+import {MovieInParty} from "./Types";
 
 const db_name = "vkpartydb";
 
@@ -26,7 +27,7 @@ export class Mongo {
     //TODO: Change "any" type to something specific
     addNewParty(party_id: string, title: string, user_id: number, date: string, isPrivate: boolean): any {
         return new Promise((resolve, reject) => {
-            let myobj = {pid: party_id, title: title, owner_id: user_id, date: date, private: isPrivate};
+            let myobj = {pid: party_id, title: title, owner_id: user_id, date: new Date(date), private: isPrivate};
             this.db.collection("parties").insertOne(myobj, (err, res) => {
                 if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
                 resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
@@ -60,15 +61,20 @@ export class Mongo {
         })
     }
 
-    //TODO: Add checking of private party
     getParty(party_id: string, user_id: number): any {
         return new Promise((resolve, reject) => {
             this.db.collection("parties").findOne({pid: party_id}, {projection: {_id: 0}}, (err, document) => {
                 if (err) reject(new VKPartyResponse(false, "Error while trying to find party in database", {error: err}));
                 if (document === null) {
                     reject(new VKPartyResponse(false, "No party was found with given id", {}))
+                } else if (!document.movies) {
+                    resolve(new VKPartyResponse(true, "Party was found!", document));
+                }
+                //Check if user has access to the party
+                else if (document.private && ((document.guests && document.guests.includes(user_id) === false) && user_id !== document.owner_id)) {
+                    reject(new VKPartyResponse(false, "You don't have access to this party", {}));
                 } else {
-                    Promise.all(document.movies.map((item) => {
+                    Promise.all(document.movies.map((item: MovieInParty) => {
                         return new Promise((res, rej) => {
                             let result_object = {movie: {}, user: {}};
                             this.db.collection("movies").findOne({m_id: item.movie}, {projection: {_id: 0}}, (err, document) => {
@@ -100,11 +106,52 @@ export class Mongo {
                         resolve(new VKPartyResponse(true, "Party was found!", detailed_document));
                     })
                         .catch((error) => {
-                            resolve(error)
+                            reject(error)
                         });
                 }
             });
         });
+    }
+
+    getParties(user_id: number): any {
+        return new Promise((resolve, reject) => {
+            let cursor = this.db.collection("parties").find({
+                $and: [{
+                    $or:
+                        [
+                            {owner_id: user_id},
+                            {guests: [user_id]}
+
+                        ]
+                },
+                    {
+                        date: {$gte: new Date()}
+                    }]
+            }, {projection: {_id: 0}}).toArray((err, results) => {
+                if (results.length === 0) {
+                    reject(new VKPartyResponse(false, "No parties were found for user with this id", {user_id: user_id}))
+                } else {
+                    Promise.all(results.map((party) => {
+                        return new Promise ((res, rej) => {
+                            this.getParty(party.pid, user_id)
+                                .then((getPartyResponse : VKPartyResponse) => {
+                                    res(getPartyResponse.data);
+                                })
+                                .catch((getPartyResponse : VKPartyResponse) => {
+                                    rej(getPartyResponse);
+                                })
+                        })
+                    }))
+                        .then((response) => {
+                            resolve(new VKPartyResponse(true, "Upcoming parties for this user", response))
+                        })
+                        .catch ((error) => {
+                            reject(error);
+                        })
+                }
+            });
+
+        })
     }
 
 }
