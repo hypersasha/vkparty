@@ -17,6 +17,7 @@ import CreatePartyForm from "../NewParty/CreatePartyForm";
 
 import axios from 'axios';
 import PanelSpinner from "@vkontakte/vkui/src/components/PanelSpinner/PanelSpinner";
+import PartyInfo from "./PartyInfo";
 
 class Party extends Component {
     constructor(props) {
@@ -74,7 +75,7 @@ class Party extends Component {
     render() {
         const loading = this.state.loading;
         return (
-            <div id={"party-info"}>
+            <div>
                 <PanelHeader
                     noShadow={true}
                     left={<HeaderButton onClick={() => {
@@ -83,92 +84,29 @@ class Party extends Component {
                 >
                     <div className="rave--header-title">Событие</div>
                 </PanelHeader>
+                <FixedLayout vertical="top">
+                    <Tabs theme="header" type="buttons">
+                        <HorizontalScroll>
+                            <TabsItem selected={this.state.panelScope === "info"}
+                                      onClick={() => {
+                                          this.onChangeScope('info')
+                                      }}>Информация</TabsItem>
+                            <TabsItem selected={this.state.panelScope === "movies"}
+                                      onClick={() => {
+                                          this.onChangeScope('movies')
+                                      }}>Фильмы</TabsItem>
+                            <TabsItem selected={this.state.panelScope === "goods"}
+                                      onClick={() => {
+                                          this.onChangeScope('goods')
+                                      }}>Покупки</TabsItem>
+                        </HorizontalScroll>
+                    </Tabs>
+                </FixedLayout>
                 {loading ? <PanelSpinner height={170}/> : ''}
-                <div>
-                    <FixedLayout vertical={"top"}>
-                        <Tabs theme={"header"} type={"buttons"}>
-                            <HorizontalScroll>
-                                <TabsItem selected={this.state.panelScope === "info"}
-                                          onClick={() => {
-                                              this.onChangeScope('info')
-                                          }}>Информация</TabsItem>
-                                <TabsItem selected={this.state.panelScope === "movies"}
-                                          onClick={() => {
-                                              this.onChangeScope('movies')
-                                          }}>Фильмы</TabsItem>
-                                <TabsItem selected={this.state.panelScope === "goods"}
-                                          onClick={() => {
-                                              this.onChangeScope('goods')
-                                          }}>Покупки</TabsItem>
-                            </HorizontalScroll>
-                        </Tabs>
-                    </FixedLayout>
-                    <List style={{paddingTop: 60}}>
-                        {this.state.loadingFailed ?
-                            <Div>
-                                <FormStatus title="Ошибка соединения" state={"error"}>
-                                    Что-то или кто-то мешает нам подключиться к серверу. Попробуйте ещё разок.
-                                </FormStatus>
-                            </Div> : ''}
-                        <Cell
-                            before={<Avatar
-                                src={"https://www.tasteofhome.com/wp-content/uploads/2017/10/Six-Layer-Dinner_exps6019_W101973175B07_06_3bC_RMS-2.jpg"}
-                                size={80}/>}
-                            size="l"
-                            description={"Николай Таранов"}
-                            bottomContent={
-                                <div className="rave--event-date">Пятница, 22 апр. 2019</div>
-                            }
-                        >
-                            Кукинг стрэм
-                        </Cell>
-                    </List>
-                    <Group description={"Люди, отмеченные серым цветом, не подтвердили своего участия."}>
-                        <Header level="2" aside={<Link>Изменить</Link>}>участники</Header>
-                        <List>
-                            <Cell
-                                removable={false}
-                                removePlaceholder={"Исключить"}
-                                before={<Avatar
-                                    src={"https://pp.userapi.com/c841227/v841227164/7c931/jiyCe7qzdJw.jpg?ava=1"}
-                                    size={48}/>}>
-                                Александр Белов
-                            </Cell>
-                            <Cell
-                                removable={false}
-                                removePlaceholder={"Исключить"}
-                                className={"guest--no-confirmed"}
-                                before={<Avatar
-                                    src={"https:\\/\\/pp.userapi.com\\/c636719\\/v636719044\\/1e509\\/_-3LN6hoebk.jpg?ava=1"}
-                                    size={48}/>}>
-                                Сергей Бродский
-                            </Cell>
-                            <Cell
-                                removable={false}
-                                removePlaceholder={"Исключить"}
-                                before={<Avatar
-                                    src={"https:\\/\\/pp.userapi.com\\/Spw8dwKuU3tUCMeQiKb7VBdgq4uSF3EzZSBDIw\\/G09X32lEzoc.jpg?ava=1"}
-                                    size={48}/>}>
-                                Артем Скачков
-                            </Cell>
-                        </List>
-                        <Div style={{display: 'flex'}}>
-                            <Button size="m" align="center">Пригласить друзей</Button>
-                        </Div>
-                    </Group>
-                    <Footer>2 активных участника</Footer>
-                    <Group title={"Настройки"}>
-                        <CreatePartyForm
-                            onSubmit={(formData) => {
-                                console.log(formData)
-                            }}
-                            title={"Кукинг стрэм"}
-                            date={"2019-4-29"}
-                            private={true}
-                            submitButtonText={"Сохранить"}
-                        />
-                    </Group>
-                </div>
+                {this.state.loadingFailed ? <Footer style={{marginTop: 70}}>Не удаётся установить связь с сервером. Повторите попытку чуть позже.</Footer> : ''}
+                {this.state.panelScope === "info" && !this.state.loading && this.state.loadingFailed ?
+                    <PartyInfo /> :
+                    ''}
             </div>
         );
     }
