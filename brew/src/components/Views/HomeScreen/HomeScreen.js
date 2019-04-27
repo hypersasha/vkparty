@@ -1,15 +1,24 @@
 import React, {Component} from 'react';
 
 import Icon24Add from '@vkontakte/icons/dist/24/add';
-import Icon24LogoVk from '@vkontakte/icons/dist/24/logo_vk';
 
-import {Avatar, Cell, Footer, Group, HeaderButton, List, Panel, PanelHeader} from "@vkontakte/vkui/src";
+import {Footer, Group, HeaderButton, PanelHeader} from "@vkontakte/vkui/src";
+
+import axios from 'axios';
+import {SERVER_URL, declOfNum} from "../../../lib/Utils";
 
 import './homescreen.less';
+import PanelSpinner from "@vkontakte/vkui/src/components/PanelSpinner/PanelSpinner";
+import FutureParties from "./FutureParties/FutureParties";
 
 class HomeScreen extends Component {
     constructor(props) {
         super(props);
+        this.state = {
+            loading: true,
+            loadingFailed: false,
+            futureParties: this.props.parties
+        };
 
         this.openParty = this.openParty.bind(this);
     }
@@ -19,49 +28,50 @@ class HomeScreen extends Component {
         this.props.onChangePanel('party-info');
     }
 
+    componentDidMount() {
+        axios.get(SERVER_URL + '/parties', {
+            params: {
+                user_id: 19592568
+            }
+        }).then((response) => {
+            if (response.data.isOK) {
+                this.setState({
+                    loading: false,
+                    loadingFailed: false,
+                    futureParties: response.data.data
+                })
+            } else {
+                this.setState({
+                    loading: false,
+                    loadingFailed: false,
+                    futureParties: []
+                });
+            }
+        }).catch((err) => {
+            this.setState({
+                loading: false,
+                loadingFailed: true
+            });
+        });
+    }
+
     render() {
+        const {loading, loadingFailed, futureParties} = this.state;
         return (
             <div>
                 <PanelHeader
                     left={<HeaderButton onClick={() => { this.props.onChangeView('newParty'); }}><Icon24Add/></HeaderButton>}>
                     <div className="rave--header-title">
-                        {/*<Icon24LogoVk/>*/}
                         <span>Мои события</span>
                     </div>
                 </PanelHeader>
+                {loading ? <PanelSpinner height={100}/> : ''}
+                {loadingFailed ? <Footer style={{marginTop: 30}}>Не удаётся установить связь с сервером. Повторите попытку чуть позже.</Footer> : ''}
                 <Group title={"ближайшие события"}>
-                    <List>
-                        <Cell
-                            before={<Avatar
-                                src={"https://www.tasteofhome.com/wp-content/uploads/2017/10/Six-Layer-Dinner_exps6019_W101973175B07_06_3bC_RMS-2.jpg"}
-                                size={72}/>}
-                            expandable={true}
-                            size="l"
-                            description={"Николай Таранов"}
-                            bottomContent={
-                                <div className="rave--event-date">В эту пятницу, 22 апр.</div>
-                            }
-                            onClick={() => {this.openParty('4t801o5pmcbhdjrpawra3woctwckbcbe')}}
-                        >
-                            Кукинг стрэм
-                        </Cell>
-                        <Cell
-                            before={<Avatar
-                                className={"rave-preview-pic"}
-                                src={"https://cs.pikabu.ru/post_img/2013/06/14/11/1371231426_2070153925.jpg"}
-                                size={72}/>}
-                            expandable={true}
-                            size="l"
-                            description={"Артем Скачков"}
-                            bottomContent={
-                                <div className="rave--event-date">В след. субботу, 5 май</div>
-                            }
-                        >
-                            Вечер кино
-                        </Cell>
-                    </List>
+                    {(futureParties.length === 0 && !loading && !loadingFailed ? <Footer style={{}}>Не найдено ни одного события.</Footer> : '')}
+                    <FutureParties futureParties={futureParties} onOpenParty={this.openParty} />
                 </Group>
-                <Footer>2 вечеринки</Footer>
+                <Footer>{futureParties.length} {declOfNum(futureParties.length, ["вечеринка", "вечеринки", "вечеринок"])}</Footer>
             </div>
         )
     }

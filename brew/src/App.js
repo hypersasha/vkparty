@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Root, View, Panel, PanelHeader, HeaderButton, ConfigProvider} from "@vkontakte/vkui/src";
+import {Root, View, Panel} from "@vkontakte/vkui/src";
 
 import {platform, IOS} from './lib/platform';
 import HomeScreen from "./components/Views/HomeScreen/HomeScreen";
@@ -18,7 +18,8 @@ class App extends Component {
 
         this.state = {
             activeView: 'homeScreen',
-            activePanel: 'raves'
+            activePanel: 'raves',
+            futureParties: []
         };
 
         this.OnChangeView = this.OnChangeView.bind(this);
@@ -57,7 +58,7 @@ class App extends Component {
             <Root activeView={this.state.activeView}>
                 <View id={"homeScreen"} activePanel={this.state.activePanel}>
                     <Panel id={"raves"}>
-                        <HomeScreen onChangeView={this.OnChangeView} onChangePanel={this.OnChangePanel} />
+                        <HomeScreen parties={this.state.futureParties} onChangeView={this.OnChangeView} onChangePanel={this.OnChangePanel} />
                     </Panel>
                     <Panel id={"party-info"}>
                         <Party onChangePanel={this.OnChangePanel} />

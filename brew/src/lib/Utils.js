@@ -37,4 +37,9 @@ export function getTextDate(date) {
     return day + ', ' + date.getDate() + ' ' + month;
 }
 
-export const SERVER_URL = "http://localhost:3000";
+export function declOfNum(number, titles) {
+    let cases = [2, 0, 1, 1, 1, 2];
+    return titles[ (number%100>4 && number%100<20)? 2 : cases[(number%10<5)?number%10:5] ];
+}
+
+export const SERVER_URL = "http://192.168.1.6:3000";

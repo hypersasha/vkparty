@@ -33,7 +33,6 @@ class AddParty extends Component {
      * Triggers when user pressed a "Create" button.
      */
     onSubmit(formData) {
-        console.log(formData);
         axios.post(SERVER_URL + '/party', {
             title: formData.title,
             user_id: 19592568,

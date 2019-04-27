@@ -1,19 +1,16 @@
 import React, {Component} from 'react';
 import {
-    Avatar, Button, Cell,
-    FixedLayout, Group,
+    FixedLayout,
     HeaderButton,
-    HorizontalScroll, List,
+    HorizontalScroll,
     PanelHeader,
     Tabs,
-    Div,
-    TabsItem, Footer, Header, Link, FormStatus
+    TabsItem, Footer
 } from "@vkontakte/vkui/src";
 
 import {SERVER_URL} from "../../../lib/Utils";
 
 import Icon24BrowserBack from '@vkontakte/icons/dist/24/browser_back';
-import CreatePartyForm from "../NewParty/CreatePartyForm";
 
 import axios from 'axios';
 import PanelSpinner from "@vkontakte/vkui/src/components/PanelSpinner/PanelSpinner";
@@ -46,7 +43,7 @@ class Party extends Component {
         this.props.onChangePanel('raves');
     }
 
-    componentWillMount() {
+    componentDidMount() {
 
         if (window.location.hash) {
             const pid = window.location.hash.slice(1, window.location.hash.length);
@@ -56,10 +53,12 @@ class Party extends Component {
                     user_id: 19592568
                 }
             }).then((response) => {
-                console.log(response);
                 let res = response.data;
                 if (res.isOK) {
-
+                    this.setState({
+                        loading: false,
+                        party_info: res.data
+                    });
                 } else {
                     this.onNavBack();
                 }
@@ -104,8 +103,11 @@ class Party extends Component {
                 </FixedLayout>
                 {loading ? <PanelSpinner height={170}/> : ''}
                 {this.state.loadingFailed ? <Footer style={{marginTop: 70}}>Не удаётся установить связь с сервером. Повторите попытку чуть позже.</Footer> : ''}
-                {this.state.panelScope === "info" && !this.state.loading && this.state.loadingFailed ?
-                    <PartyInfo /> :
+                {this.state.panelScope === "info" && !this.state.loading && !this.state.loadingFailed ?
+                    <PartyInfo date={this.state.party_info.date}
+                               title={this.state.party_info.title}
+                               private={this.state.party_info.private}
+                    /> :
                     ''}
             </div>
         );
