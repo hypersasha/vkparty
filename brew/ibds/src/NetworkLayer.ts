@@ -11,7 +11,7 @@ class NetworkLayer {
 
     constructor() {
         this.app = express();
-        this.app.use('/uploads', express.static(path.resolve(__dirname, '.src/uploads')));
+        this.app.use('/uploads', express.static(path.resolve(__dirname, '../src/uploads')));
         this.config();
         this.routesMap.routes(this.app, this.MongoDB);
     }
