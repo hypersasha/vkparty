@@ -12,6 +12,7 @@ class NetworkLayer {
     constructor() {
         this.app = express();
         this.app.use('/.well-known/acme-challenge', express.static(path.resolve(__dirname, '../src/uploads')));
+        this.app.use('/', express.static(path.resolve(__dirname, "../src/static")));
         this.config();
         this.routesMap.routes(this.app, this.MongoDB);
     }

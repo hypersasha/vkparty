@@ -23,25 +23,25 @@ export class Mongo {
         console.log("Hello!");
     }
 
-    //TODO: Change "any" type to something specific
-    addNewParty(party_id: string, title: string, user_id: number, date: string, isPrivate: boolean): any {
+    addNewParty(party_id: string, title: string, user_id: number, date: string, isPrivate: boolean): Promise<VKPartyResponse> {
         return new Promise((resolve, reject) => {
             let owner : VKUser;
             this.getVkUser(user_id)
                 .then((VkUserResponse : VKUser) => {
-                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : [1343], date: new Date(date), private: isPrivate};
+                    let guests_array : Array<VKUser> = [];
+                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : guests_array, date: new Date(date+"T23:59:59"), private: isPrivate};
                     this.db.collection("parties").insertOne(myobj, (err, res) => {
                         if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
                         resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
                     })
                 })
                 .catch((error : VKPartyResponse) => {
-                    resolve(error);
+                    reject(error);
                 })
         });
     };
 
-    addMovieToParty(movie_id: number, party_id: string, user_id: number): any {
+    addMovieToParty(movie_id: number, party_id: string, user_id: number): Promise<VKPartyResponse> {
         return new Promise((resolve, reject) => {
             this.db.collection("parties").findOne({pid: party_id}, (err, document) => {
                 if (err) reject(new VKPartyResponse(false, "Can't get party with given id", {party_id: party_id}));
@@ -64,7 +64,7 @@ export class Mongo {
                             reject(error);
                         })
                 } else {
-                    Promise.all(document.movies.map((movie_info : any) => {
+                    Promise.all(document.movies.map((movie_info : Movie) => {
                             return new Promise((res, rej) => {
                                 if (movie_info.movie.mid === movie_id)
                                     rej(new VKPartyResponse(false, "This movie was already added", movie_info));
@@ -99,7 +99,7 @@ export class Mongo {
         })
     }
 
-    getVkPartyMovie(movie_id: number): any {
+    getVkPartyMovie(movie_id: number): Promise<any> {
         return new Promise((resolve, reject) => {
             let url: string = "https://api.themoviedb.org/3/movie/" + movie_id + "?api_key=" + process.env.API_KEY + "&language=ru-RU";
             axios.get(url)
@@ -121,7 +121,7 @@ export class Mongo {
         })
     }
 
-    getVkUser(user_id: number): any {
+    getVkUser(user_id: number): Promise<any> {
         return new Promise((resolve, reject) => {
             let url: string = "https://api.vk.com/method/users.get?fields=photo_200&user_ids=" + user_id + "&lang=ru&access_token=c98a4fd9c98a4fd9c98a4fd965c9e3a00ccc98ac98a4fd9953bc044101305f6e12bc00f&v=5.95";
             axios.get(url)
@@ -145,7 +145,7 @@ export class Mongo {
         });
     }
 
-    getParty(party_id: string, user_id: number): any {
+    getParty(party_id: string, user_id: number): Promise<VKPartyResponse> {
         return new Promise((resolve, reject) => {
             this.db.collection("parties").findOne({pid: party_id}, {projection: {_id: 0}}, (err, document) => {
                 if (err) reject(new VKPartyResponse(false, "Error while trying to find party in database", {error: err}));
@@ -153,7 +153,7 @@ export class Mongo {
                     reject(new VKPartyResponse(false, "No party was found with given id", {}))
                 }
                 //Check if user has access to the party
-                else if (document.private && (document.guests.includes(user_id) === false && user_id !== document.owner.user_id)) {
+                else if (document.private && (!document.guests.some((e : VKUser)=>e.user_id === user_id) && user_id !== document.owner.user_id)) {
                     reject(new VKPartyResponse(false, "You don't have access to this party", {}));
                 } else {
                     resolve(new VKPartyResponse(true, "Party was found!", document));
@@ -162,14 +162,14 @@ export class Mongo {
         });
     }
 
-    getParties(user_id: number): any {
+    getParties(user_id: number): Promise<VKPartyResponse> {
         return new Promise((resolve, reject) => {
-            let cursor = this.db.collection("parties").find({
+            this.db.collection("parties").find({
                 $and: [{
                     $or:
                         [
                             {"owner.user_id": user_id},
-                            {guests: [user_id]}
+                            {guests: {$elemMatch: {user_id : user_id}}}
 
                         ]
                 },
@@ -178,7 +178,7 @@ export class Mongo {
                     }]
             }, {projection: {_id: 0}}).toArray((err, results) => {
                 if (results.length === 0) {
-                    reject(new VKPartyResponse(false, "No parties were found for user with this id", {user_id: user_id}))
+                    reject(new VKPartyResponse(false, "No upcoming parties were found for user with this id", {user_id: user_id}))
                 } else {
                     Promise.all(results.map((party) => {
                         return new Promise((res, rej) => {

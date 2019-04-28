@@ -4,7 +4,7 @@ const poster_size = 185;
 
 export class Movie {
 
-    constructor(public movie : VKPartyMovie, public user : VKUser) {
+    constructor(public movie : VKPartyMovie, public user : VKUser = {user_id : 1, first_name : "Generic", last_name : "User", photo : "none"}) {
         this.movie.mid = movie.mid;
         this.movie.title = movie.title;
         this.movie.poster_url = "http://image.tmdb.org/t/p/w" + poster_size + "/" + movie.poster_url;
