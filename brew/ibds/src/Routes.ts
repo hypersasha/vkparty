@@ -10,6 +10,7 @@ import {FileUploader} from "./RequestHandlers/FileUploader";
 import {Movie} from "./Movie";
 import {Mongo} from "./Mongo";
 import {VKPartyResponse} from "./VKPartyResponse";
+import {VKPartyMovie} from "./Types";
 
 export class Routes {
 
@@ -42,9 +43,10 @@ export class Routes {
                     }
                     else {
                         let result = response.data.results;
-                        let movies_to_send : Array<object> = [];
+                        let movies_to_send : Array<VKPartyMovie> = [];
                         result.forEach((movie : any) => {
-                            movies_to_send.push(new Movie(movie.id, movie.title, movie.poster_path, movie.vote_average, movie.release_date));
+                            let movie_to_push : VKPartyMovie =  new Movie ({mid : movie.id, title : movie.title, poster_url : movie.poster_path, score : movie.vote_average, release : movie.release_date}).movie;
+                            movies_to_send.push(movie_to_push);
                         });
                         res.send(new VKPartyResponse(true, "Movies matching your query", movies_to_send));
                     }
@@ -117,20 +119,20 @@ export class Routes {
             let partyId : string = this.makeid(32);
 
            MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, req.body.isPrivate)
-               .then((response : any) => {
+               .then((response : VKPartyResponse) => {
                    res.send(response);
                })
-               .catch((response : any) => {
+               .catch((response : VKPartyResponse) => {
                    res.send(response)
                })
         });
 
         app.post('/movie', (req, res) => {
            MongoDB.addMovieToParty(req.body.mid, req.body.pid, req.body.user_id)
-               .then((response : any) => {
+               .then((response : VKPartyResponse) => {
                    res.send(response);
                })
-               .catch((response : any) => {
+               .catch((response : VKPartyResponse) => {
                    res.send(response);
                })
         });
