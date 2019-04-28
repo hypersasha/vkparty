@@ -29,7 +29,9 @@ export class Mongo {
             this.getVkUser(user_id)
                 .then((VkUserResponse : VKUser) => {
                     let guests_array : Array<VKUser> = [];
-                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : guests_array, date: new Date(date+"T23:59:59"), private: isPrivate};
+                    let event_date : Date = new Date(date);
+                    event_date.setHours(23,59,59);
+                    let myobj = {pid: party_id, title: title, owner: VkUserResponse, guests : guests_array, date: event_date, private: isPrivate};
                     this.db.collection("parties").insertOne(myobj, (err, res) => {
                         if (err) reject(new VKPartyResponse(false, "Error while adding party to database", {error: err}));
                         resolve(new VKPartyResponse(true, "Party was added!", {pid: party_id}));
