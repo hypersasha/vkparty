@@ -32,6 +32,16 @@ export class Routes {
             res.end("That's all folks, yeah!");
         });
 
+        app.patch('/party' , (req, res) => {
+            MongoDB.updateParty(req.body.party_id, req.body.user_id, req.body.patch)
+                .then((response) => {
+                    res.send(response);
+                })
+                .catch ((error) => {
+                    res.send(error);
+                })
+        })
+
         app.get('/search', (req, res) => {
 
             let url = encodeURI("https://api.themoviedb.org/3/search/movie?api_key=" + process.env.API_KEY + "&language=ru-RU&page=1&query=" + req.query.query);

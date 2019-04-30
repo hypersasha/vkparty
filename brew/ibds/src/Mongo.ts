@@ -205,4 +205,19 @@ export class Mongo {
         })
     }
 
+    updateParty(party_id : string, user_id : number, patchObject) : Promise<VKPartyResponse> {
+        return new Promise((resolve, reject) => {
+           this.db.collection("parties").findOne({pid: party_id}, (err, document) => {
+               if (err) reject(new VKPartyResponse(false, "Error while trying to get party from database", err));
+               if (user_id !== document.owner.user_id) reject(new VKPartyResponse(false, "You are not the owner of this party!", {}));
+               else {
+                   this.db.collection("parties").updateOne({pid: party_id}, {$set: patchObject}, (err, result) => {
+                      if (err) reject (new VKPartyResponse(false, "Error while updating party object in database", err));
+                      resolve (new VKPartyResponse(true, "Party updated!", Object.assign(document, patchObject)));
+                   });
+               }
+           })
+        });
+    }
+
 }
