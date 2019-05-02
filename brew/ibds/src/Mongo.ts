@@ -101,6 +101,26 @@ export class Mongo {
         })
     }
 
+    addGuestsToParty(party_id : string, guests : Array<VKUser>) : Promise<VKPartyResponse> {
+        return new Promise((resolve, reject) => {
+            this.db.collection("parties").updateOne({pid: party_id}, {$addToSet: {guests : {$each: guests}}}, (err, result) => {
+                if (err) reject (new VKPartyResponse(false, "Error while trying to add guests to this party in database", err));
+                if (result.modifiedCount === 0) reject (new VKPartyResponse(false, "All of the guests you provide already added to this party", guests));
+                resolve (new VKPartyResponse(true, "New guests were added to party!", {}));
+            });
+        });
+    }
+
+    deleteGuest(party_id : string, guest_id : number) : Promise<VKPartyResponse> {
+        return new Promise((resolve, reject) => {
+            this.db.collection("parties").updateOne({pid : party_id}, {$pull : {guests : {user_id : guest_id}}}, (err, result) => {
+                if (err) reject (new VKPartyResponse(false, "Error while trying to delete a guest from this party", err));
+                if (result.modifiedCount === 0) reject (new VKPartyResponse(false, "No such user to delete from this party", {guest_id : guest_id}))
+                resolve (new VKPartyResponse(true, "Guest was deleted!", {}));
+            })
+        })
+    }
+
     getVkPartyMovie(movie_id: number): Promise<any> {
         return new Promise((resolve, reject) => {
             let url: string = "https://api.themoviedb.org/3/movie/" + movie_id + "?api_key=" + process.env.API_KEY + "&language=ru-RU";
@@ -205,12 +225,17 @@ export class Mongo {
         })
     }
 
-    updateParty(party_id : string, user_id : number, patchObject) : Promise<VKPartyResponse> {
+    updateParty(party_id : string, user_id : number, patchObject : any) : Promise<VKPartyResponse> {
         return new Promise((resolve, reject) => {
            this.db.collection("parties").findOne({pid: party_id}, (err, document) => {
                if (err) reject(new VKPartyResponse(false, "Error while trying to get party from database", err));
                if (user_id !== document.owner.user_id) reject(new VKPartyResponse(false, "You are not the owner of this party!", {}));
                else {
+                   if (patchObject.date) {
+                       let date : Date = new Date(patchObject.date);
+                       date.setHours(23, 59, 59);
+                       patchObject.date = date;
+                   }
                    this.db.collection("parties").updateOne({pid: party_id}, {$set: patchObject}, (err, result) => {
                       if (err) reject (new VKPartyResponse(false, "Error while updating party object in database", err));
                       resolve (new VKPartyResponse(true, "Party updated!", Object.assign(document, patchObject)));
