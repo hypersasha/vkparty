@@ -90,8 +90,7 @@ export class Routes {
 
                     })
                     .catch((error) => {
-                        console.log(error);
-                        res.send(new VKPartyResponse(false, "Error happened while getting movies from THEMOOVIEDB", {}));
+                        res.send(new VKPartyResponse(false, "Error happened while getting movies from THEMOOVIEDB", {error}));
                     })
             }
         });

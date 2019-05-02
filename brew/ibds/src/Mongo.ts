@@ -47,7 +47,10 @@ export class Mongo {
         return new Promise((resolve, reject) => {
             this.db.collection("parties").findOne({pid: party_id}, (err, document) => {
                 if (err) reject(new VKPartyResponse(false, "Can't get party with given id", {party_id: party_id}));
-                if (!document.movies) {
+                if (document === null) {
+                    reject(new VKPartyResponse(false, "No party was found with given id", {party_id : party_id}))
+                }
+                else if (!document.movies) {
                     this.getVkPartyMovie(movie_id)
                         .then((VkPartyMovieResponse : VKPartyMovie) => {
                             this.getVkUser(user_id)
@@ -115,7 +118,7 @@ export class Mongo {
         return new Promise((resolve, reject) => {
             this.db.collection("parties").updateOne({pid : party_id}, {$pull : {guests : {user_id : guest_id}}}, (err, result) => {
                 if (err) reject (new VKPartyResponse(false, "Error while trying to delete a guest from this party", err));
-                if (result.modifiedCount === 0) reject (new VKPartyResponse(false, "No such user to delete from this party", {guest_id : guest_id}))
+                if (result.modifiedCount === 0) reject (new VKPartyResponse(false, "No such guest to delete from this party", {guest_id : guest_id}));
                 resolve (new VKPartyResponse(true, "Guest was deleted!", {}));
             })
         })
@@ -172,7 +175,7 @@ export class Mongo {
             this.db.collection("parties").findOne({pid: party_id}, {projection: {_id: 0}}, (err, document) => {
                 if (err) reject(new VKPartyResponse(false, "Error while trying to find party in database", {error: err}));
                 if (document === null) {
-                    reject(new VKPartyResponse(false, "No party was found with given id", {}))
+                    reject(new VKPartyResponse(false, "No party was found with given id", {party_id : party_id}))
                 }
                 //Check if user has access to the party
                 else if (document.private && (!document.guests.some((e : VKUser)=>e.user_id === user_id) && user_id !== document.owner.user_id)) {
