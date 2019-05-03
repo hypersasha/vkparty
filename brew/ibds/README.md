@@ -12,7 +12,7 @@
   
 *  **URL Параметры**
  
-   `query=[string]`
+   `query=[string]`	Строка с названием фильма, который необходимо найти
 
 * **Body параметры**
 
@@ -20,7 +20,8 @@
 
 * **Success Response:**
 
-  * **Content:** `{
+  * **Content:** 
+  ```json
     "isOK": true,
     "message": "Movies matching your query",
     "data": [
@@ -32,24 +33,25 @@
             "release": "1994"
         }
     ]
-}`
+    ```
  
 * **Error Response:**
 
-  * **Content:** `{
+  * **Content:** 
+    ```json
     "isOK": false,
     "message": "No such movie. Try different name!",
     "data": {}
-}`
-
+    ```
   Или
 
-  * **Content:** `{
+  * **Content:**
+  ```json
     "isOK": false,
     "message": "Error happened while getting movies from THEMOOVIEDB",
     "data": {MoovieDB Error Object}
-}`
-
+    ```
+    
 **Получить вечеринку**
 ----
   Запрос возвращает информацию о вечеринке с соответствующим id
@@ -64,8 +66,8 @@
   
 *  **URL Параметры**
  
-   `pid=[string]`
-   `user_id=[integer]`
+   `pid=[string]`  
+   `user_id=[integer]`  
 
 * **Body параметры**
 
