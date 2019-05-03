@@ -23,7 +23,7 @@ export class Routes {
         app.use(function (req, res, next) {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader("Access-Control-Allow-Credentials", "true");
-            res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
+            res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE,PATCH");
             res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
             next();
         });
@@ -162,18 +162,17 @@ export class Routes {
         });
 
         app.post('/party', (req, res) => {
-            if (!req.body.title || !req.body.user_id || !req.body.date || !req.body.isPrivate) {
+            if (!req.body.title || !req.body.user_id || !req.body.date) {
                 res.send(new VKPartyResponse(false, "Body is not valid!", {
                     "valid_body": {
                         title: "party title",
                         user_id: 123456,
-                        date: "2077-12-25",
-                        isPrivate: false
+                        date: "2077-12-25"
                     }
                 }))
             } else {
                 let partyId: string = this.makeid(32);
-                MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, req.body.isPrivate)
+                MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, (req.body.isPrivate? req.body.isPrivate : false))
                     .then((response: VKPartyResponse) => {
                         res.send(response);
                     })
@@ -241,7 +240,7 @@ export class Routes {
                         res.send(response);
                     })
             }
-        })
+        });
 
         app.delete('/guest', (req, res) => {
             if (!req.query.pid || !req.query.guest_id) {
@@ -256,6 +255,20 @@ export class Routes {
                     })
             }
         })
+
+        app.delete('/movie', (req, res) => {
+           if (!req.query.pid || !req.query.mid) {
+               res.send(new VKPartyResponse(false, "Query is not valid!", {"valid_query": "pid=123qwe&mid=12345"}));
+           } else {
+               MongoDB.deleteMovie(req.query.pid, parseInt(req.query.mid, 10))
+                   .then((response : VKPartyResponse) => {
+                       res.send(response);
+                   })
+                   .catch((response: VKPartyResponse) => {
+                       res.send(response);
+                   })
+           }
+        });
     }
 
     //TODO: Apply escapeHtml to important parts of code

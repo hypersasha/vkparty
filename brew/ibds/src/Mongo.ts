@@ -124,6 +124,16 @@ export class Mongo {
         })
     }
 
+    deleteMovie(party_id : string, movie_id : number) : Promise<VKPartyResponse> {
+        return new Promise((resolve, reject) => {
+          this.db.collection("parties").updateOne({pid: party_id}, {$pull : {movies: {"movie.mid": movie_id}}}, (err, result) => {
+              if (err) reject (new VKPartyResponse(false, "Error while trying to delete a movie from this party", err));
+              if (result.modifiedCount === 0) reject (new VKPartyResponse(false, "No such movie to delete from this party", {movie_id: movie_id}));
+              resolve (new VKPartyResponse(true, "Movie was deleted!", {}));
+          })
+        })
+    }
+
     getVkPartyMovie(movie_id: number): Promise<any> {
         return new Promise((resolve, reject) => {
             let url: string = "https://api.themoviedb.org/3/movie/" + movie_id + "?api_key=" + process.env.API_KEY + "&language=ru-RU";
