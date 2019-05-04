@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import {Button, Checkbox, FormLayout, Input, Select} from "@vkontakte/vkui/src";
-import {getTextDate} from "../../../lib/Utils";
+import {Button, Checkbox, Div, FormLayout, Input, Select, Slider, Textarea} from "@vkontakte/vkui/src";
+import {declOfNum, getTextDate} from "../../../lib/Utils";
 import PropTypes from 'prop-types';
 
 class CreatePartyForm extends Component {
@@ -11,10 +11,12 @@ class CreatePartyForm extends Component {
             titleStatus: 'default',
             date: this.props.date || null,
             dateStatus: 'default',
-            private: this.props.private || false
+            private: this.props.private || false,
+            maxMovies: this.props.maxMovies || 3
         };
 
         this.onChange = this.onChange.bind(this);
+        this.onChangeMaxMovies = this.onChangeMaxMovies.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.InitPrivate = this.InitPrivate.bind(this);
     }
@@ -27,6 +29,12 @@ class CreatePartyForm extends Component {
         const {name, value} = e.currentTarget;
         this.setState({
             [name]: value
+        });
+    }
+
+    onChangeMaxMovies(value) {
+        this.setState({
+            maxMovies: value
         });
     }
 
@@ -134,7 +142,9 @@ class CreatePartyForm extends Component {
                 this.props.onSubmit({
                     title: this.state.title,
                     date: this.state.date,
-                    private: this.state.private
+                    private: this.state.private,
+                    max_movies: this.state.maxMovies,
+                    info: this.state.info
                 });
             }
         }
@@ -172,6 +182,25 @@ class CreatePartyForm extends Component {
                 >
                     {datesOptions}
                 </Select>
+                <Slider
+                    top={"Ограничение битвы фильмов"}
+                    step={1}
+                    min={0}
+                    max={5}
+                    name={"maxMovies"}
+                    onChange={value => {this.onChangeMaxMovies(value)}}
+                    defaultValue={this.state.maxMovies}
+                />
+                <Div style={{paddingTop: 0}}>
+                    <p style={{marginTop: 0, marginBottom: 0, fontSize: '0.9em', lineHeight: '1.2em'}}>
+                        Не более {`${this.state.maxMovies} ${declOfNum(this.state.maxMovies, ['фильма', 'фильмов', 'фильмов'])}`} с человека.
+                    </p>
+                </Div>
+                <Textarea top={"Дополнительная информация"}
+                          defaultValue={this.props.info}
+                          name={"info"}
+                          onChange={this.onChange}
+                          placeholder={"Например, адрес вечеринки"}/>
                 <Checkbox getRootRef={this.InitPrivate} onClick={() => {
                     this.setState(prevState => {
                         return ({private: !prevState.private})

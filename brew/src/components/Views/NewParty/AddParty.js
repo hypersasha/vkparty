@@ -33,11 +33,19 @@ class AddParty extends Component {
      * Triggers when user pressed a "Create" button.
      */
     onSubmit(formData) {
+
+        if (!this.props.userId || this.props.userId < 0) {
+            console.error("Cannot create party, cause you don't have VK ID.")
+            return false;
+        }
+
         axios.post(SERVER_URL + '/party', {
             title: formData.title,
-            user_id: 19592568,
+            user_id: this.props.userId,
             date: formData.date,
-            isPrivate: formData.private
+            isPrivate: formData.private,
+            max_movies: formData.max_movies,
+            info: formData.info
         }).then((response) => {
             let data = response.data;
             if (data.isOK) {
@@ -66,14 +74,14 @@ class AddParty extends Component {
                         Новое событие
                     </div>
                 </PanelHeader>
-                <Group>
-                    <div className={'newRave-intro'}>
-                        <div className="newRave-intro--icon"></div>
-                        <div className="newRave-intro--description">
-                            <p>Укажите название, дату и статус вечеринки. Затем, пригласите в неё друзей.</p>
-                        </div>
-                    </div>
-                </Group>
+                {/*<Group>*/}
+                {/*    <div className={'newRave-intro'}>*/}
+                {/*        <div className="newRave-intro--icon"></div>*/}
+                {/*        <div className="newRave-intro--description">*/}
+                {/*            <p>Укажите название, дату и статус вечеринки. Затем, пригласите в неё друзей.</p>*/}
+                {/*        </div>*/}
+                {/*    </div>*/}
+                {/*</Group>*/}
                 <Group title={"Создание вечеринки"}>
                     {this.state.formStatus.state === "error" ? <Div>
                         <FormStatus title={this.state.formStatus.title} state={this.state.formStatus.state}>
