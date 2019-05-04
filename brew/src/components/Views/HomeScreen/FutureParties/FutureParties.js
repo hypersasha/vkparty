@@ -16,18 +16,24 @@ class FutureParties extends Component {
             let date = party.date;
             if (date) {
                 date = new Date(date);
+                let timezoneOffset = date.getTimezoneOffset() / 60;
+                date.setHours(date.getHours() + timezoneOffset);
                 date = getTextDate(date);
             } else {
                 date = "Дата не указана";
             }
+            let ownerName = "Организатор";
+            if (party.owner && party.owner.first_name && party.owner.last_name) {
+                ownerName = party.owner.first_name + ' ' + party.owner.last_name;
+            }
             return <Cell
                 key={party.pid}
                 before={<Avatar
-                    src={"https://www.tasteofhome.com/wp-content/uploads/2017/10/Six-Layer-Dinner_exps6019_W101973175B07_06_3bC_RMS-2.jpg"}
+                    src={(party.owner && party.owner.photo ? party.owner.photo : '')}
                     size={72}/>}
                 expandable={true}
                 size="l"
-                description={party.owner || "Организатор"}
+                description={ownerName}
                 bottomContent={
                     <div className="rave--event-date">{date}</div>
                 }

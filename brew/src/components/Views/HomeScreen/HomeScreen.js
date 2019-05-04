@@ -2,13 +2,11 @@ import React, {Component} from 'react';
 
 import Icon24Add from '@vkontakte/icons/dist/24/add';
 
-import {Footer, Group, HeaderButton, PanelHeader} from "@vkontakte/vkui/src";
+import {Div, Footer, FormStatus, Group, HeaderButton, Panel, PanelHeader, PullToRefresh} from "@vkontakte/vkui/src";
 
-import axios from 'axios';
-import {SERVER_URL, declOfNum} from "../../../lib/Utils";
+import {declOfNum} from "../../../lib/Utils";
 
 import './homescreen.less';
-import PanelSpinner from "@vkontakte/vkui/src/components/PanelSpinner/PanelSpinner";
 import FutureParties from "./FutureParties/FutureParties";
 
 class HomeScreen extends Component {
@@ -28,51 +26,39 @@ class HomeScreen extends Component {
         this.props.onChangePanel('party-info');
     }
 
-    componentDidMount() {
-        axios.get(SERVER_URL + '/parties', {
-            params: {
-                user_id: 19592568
-            }
-        }).then((response) => {
-            if (response.data.isOK) {
-                this.setState({
-                    loading: false,
-                    loadingFailed: false,
-                    futureParties: response.data.data
-                })
-            } else {
-                this.setState({
-                    loading: false,
-                    loadingFailed: false,
-                    futureParties: []
-                });
-            }
-        }).catch((err) => {
-            this.setState({
-                loading: false,
-                loadingFailed: true
-            });
-        });
-    }
+    componentDidMount() {}
 
     render() {
-        const {loading, loadingFailed, futureParties} = this.state;
+        const {loading, loadingFailed, parties, onUpdateParties, ...restProps} = this.props;
         return (
-            <div>
-                <PanelHeader
-                    left={<HeaderButton onClick={() => { this.props.onChangeView('newParty'); }}><Icon24Add/></HeaderButton>}>
-                    <div className="rave--header-title">
-                        <span>Мои события</span>
+            <Panel id={this.props.id}>
+                <PullToRefresh onRefresh={onUpdateParties} isFetching={loading}>
+                    <div>
+                        {this.props.userId < 0 ? <Div>
+                            <FormStatus title={"Ошибка VK App"} state={"error"}>
+                                Не удалось получить Ваш ВКонтакте ID. Убедитесь, что Вы открыли приложение VK App, а не
+                                веб-браузер.
+                            </FormStatus>
+                        </Div> : ''}
+                        <PanelHeader
+                            left={<HeaderButton onClick={() => {
+                                this.props.onChangeView('newParty');
+                            }}><Icon24Add/></HeaderButton>}>
+                            <div className="rave--header-title">Вечеринки</div>
+                        </PanelHeader>
+                        {loadingFailed ?
+                            <Footer style={{marginTop: 30}}>Не удаётся установить связь с сервером. Повторите попытку
+                                чуть
+                                позже.</Footer> : ''}
+                        <Group title={"ближайшие события"}>
+                            {(parties.length === 0 && !loading && !loadingFailed ?
+                                <Footer style={{paddingBottom: 50}}>Не найдено ни одного события.</Footer> : '')}
+                            <FutureParties futureParties={parties} onOpenParty={this.openParty}/>
+                        </Group>
+                        <Footer>{parties.length} {declOfNum(parties.length, ["вечеринка", "вечеринки", "вечеринок"])}</Footer>
                     </div>
-                </PanelHeader>
-                {loading ? <PanelSpinner height={100}/> : ''}
-                {loadingFailed ? <Footer style={{marginTop: 30}}>Не удаётся установить связь с сервером. Повторите попытку чуть позже.</Footer> : ''}
-                <Group title={"ближайшие события"}>
-                    {(futureParties.length === 0 && !loading && !loadingFailed ? <Footer style={{}}>Не найдено ни одного события.</Footer> : '')}
-                    <FutureParties futureParties={futureParties} onOpenParty={this.openParty} />
-                </Group>
-                <Footer>{futureParties.length} {declOfNum(futureParties.length, ["вечеринка", "вечеринки", "вечеринок"])}</Footer>
-            </div>
+                </PullToRefresh>
+            </Panel>
         )
     }
 

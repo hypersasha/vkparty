@@ -42,4 +42,4 @@ export function declOfNum(number, titles) {
     return titles[ (number%100>4 && number%100<20)? 2 : cases[(number%10<5)?number%10:5] ];
 }
 
-export const SERVER_URL = "http://192.168.1.6:3000";
+export const SERVER_URL = "https://hypersasha.club:443";
