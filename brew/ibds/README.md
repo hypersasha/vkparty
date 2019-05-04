@@ -122,6 +122,7 @@
         ],
         "date": "2019-05-03T20:59:59.000Z",
         "private": true,
+	"max_movies": 5,
         "movies": [
             {
                 "movie": {
@@ -168,7 +169,8 @@
                     "photo": null
                 }
             }
-        ]
+        ],
+	"info": "NO!"
     }
 	```
 
@@ -269,6 +271,7 @@
             ],
             "date": "2019-05-03T20:59:59.000Z",
             "private": true,
+	    "max_movies": 5,
             "movies": [
                 {
                     "movie": {
@@ -315,7 +318,8 @@
                         "photo": null
                     }
                 }
-            ]
+            ],
+	    "info": "NO!"
         }
     ]
    ```
@@ -351,8 +355,10 @@
 
     `title: [string]`	Строка с названием вечеринки  
     `user_id: [integer]`	Идентификатор пользователя ВКонтакте, который создаёт вечеринку  
-    `date : [string]` Дата вечеринки в формате "2077-12-25"  
-    `isPrivate : [Boolean]` Является ли вечеринка приватной(__Необязателен__)  
+    `date: [string]` Дата вечеринки в формате "2077-12-25"  
+    `isPrivate: [Boolean]` Является ли вечеринка приватной(__Необязателен__)  
+    `max_movies: [integer]`  Максимальное количество фильмов, которое может добавить один участник. Не работает для организатора(__Необязателен__)  
+    `info: [string]` Строка с дополнительной информацией о вечеринке(__Необязателен__)
 
 * **Success Response:**
 
@@ -398,7 +404,7 @@
 
 * **Success Response:**
 
-   * **Content:**
+   * **Status code:201**
    ```json
     "isOK": true,
     "message": "Movie was added to party!",
@@ -421,7 +427,7 @@
  
 * **Error Response:**
   
-  * **Content:** 
+  * **Status code:500** 
   ```json
     "isOK": false,
     "message": "Can't get party with given id",
@@ -430,7 +436,7 @@
 
   Или
   
-  * **Content:**
+  * **Status code:404**
   ```json
     "isOK": false,
     "message": "No party was found with given id",
@@ -439,7 +445,7 @@
 
   Или
   
-  * **Content:** 
+  * **Status code:500** 
   ```json
     "isOK": false,
     "message": "Error in database while adding movie to party",
@@ -448,7 +454,7 @@
 
   Или
   
-  * **Content:**
+  * **Status code:409**
   ```json
     "isOK": false,
     "message": "This movie was already added",
@@ -468,6 +474,15 @@
         }
     }
     ```
+    
+    Или
+    * **Status code:403**
+    ```json
+    "isOK": false,
+    "message": "You have maximum movies added to this party",
+    "data": {}
+    ```
+    
 
 **Добавить гостей в вечеринку**
 ----
@@ -551,10 +566,12 @@
 
     * `pid: [string]`	Идентификатор вечеринки, настройки которой необходимо изменить  
     * `user_id: [integer]`	Идентификатор пользователя ВКонтакте, который пытается внести изменения  
-    * `patch : [Object]`	Объект изменений вечеринки. Объект состоит из 3 опциональных полей:  
+    * `patch : [Object]`	Объект изменений вечеринки. Объект состоит из 5 опциональных полей:  
       * `title: [string]`	Название вечеринки  
       * `private: [Boolean]`	Является ли вечеринка приватной?  
-      * `date: [string]`	Строка с датой вечеринки формата "2077-12-25"  
+      * `date: [string]`	Строка с датой вечеринки формата "2077-12-25"
+      * `max_movies: [integer]`	Максимальное количество фильмов для добавления от одного полбзователя. Не работает для организатора  
+      * `info: [string]`	Дополнительная информация о вечеринке в виде строки  
 
 * **Success Response:**
 
