@@ -172,7 +172,7 @@ export class Routes {
                 }))
             } else {
                 let partyId: string = this.makeid(32);
-                MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, (req.body.isPrivate? req.body.isPrivate : false))
+                MongoDB.addNewParty(partyId, req.body.title, req.body.user_id, req.body.date, (req.body.isPrivate ? req.body.isPrivate : false), (req.body.max_movies !== undefined ? req.body.max_movies : 3), (req.body.info !== undefined ? req.body.info : ""))
                     .then((response: VKPartyResponse) => {
                         res.send(response);
                     })
@@ -184,7 +184,7 @@ export class Routes {
 
         app.post('/movie', (req, res) => {
             if (!req.body.mid || !req.body.pid || !req.body.user_id) {
-                res.send(new VKPartyResponse(false, "Body is not valid!", {
+                res.status(400).send(new VKPartyResponse(false, "Body is not valid!", {
                     "valid_body": {
                         mid: 20349,
                         pid: "123qwe",
@@ -193,11 +193,11 @@ export class Routes {
                 }))
             } else {
                 MongoDB.addMovieToParty(req.body.mid, req.body.pid, req.body.user_id)
-                    .then((response: VKPartyResponse) => {
-                        res.send(response);
+                    .then((response: any) => {
+                        res.status(response.status).send(response.info);
                     })
-                    .catch((response: VKPartyResponse) => {
-                        res.send(response);
+                    .catch((response: any) => {
+                        res.status(response.status).send(response.info);
                     })
             }
         });
@@ -254,20 +254,20 @@ export class Routes {
                         res.send(response);
                     })
             }
-        })
+        });
 
         app.delete('/movie', (req, res) => {
-           if (!req.query.pid || !req.query.mid) {
-               res.send(new VKPartyResponse(false, "Query is not valid!", {"valid_query": "pid=123qwe&mid=12345"}));
-           } else {
-               MongoDB.deleteMovie(req.query.pid, parseInt(req.query.mid, 10))
-                   .then((response : VKPartyResponse) => {
-                       res.send(response);
-                   })
-                   .catch((response: VKPartyResponse) => {
-                       res.send(response);
-                   })
-           }
+            if (!req.query.pid || !req.query.mid) {
+                res.send(new VKPartyResponse(false, "Query is not valid!", {"valid_query": "pid=123qwe&mid=12345"}));
+            } else {
+                MongoDB.deleteMovie(req.query.pid, parseInt(req.query.mid, 10))
+                    .then((response: VKPartyResponse) => {
+                        res.send(response);
+                    })
+                    .catch((response: VKPartyResponse) => {
+                        res.send(response);
+                    })
+            }
         });
     }
 
