@@ -5895,6 +5895,168 @@ a:focus {
 .guest--no-confirmed {
   opacity: 0.5;
 }
+.rave-movie-avatar {
+  margin: 12px 12px 12px 0;
+}
+.party-movie--owner {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+.party-movie--owner p {
+  font-size: 14px;
+  margin: 0;
+  padding-left: 6px;
+  color: var(--text_subhead);
+}
+.generator-poster {
+  position: relative;
+  flex-shrink: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("http://image.tmdb.org/t/p/w400//xu6d8jgK54avQgH9QEsntbhIFft.jpg");
+  background-size: cover;
+  background-position: top center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  word-break: break-word;
+}
+.generator-poster--title {
+  color: #f5f5f5;
+  font-size: 2em;
+  text-align: center;
+  font-weight: 700;
+  z-index: 99999;
+  word-wrap: break-spaces;
+}
+.generator-poster--title.dead {
+  color: var(--field_error_border);
+  text-decoration: line-through;
+}
+.generator-poster--dead {
+  padding: 12px;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: var(--field_error_border);
+  border-radius: 6px;
+  text-align: center;
+  z-index: 99999;
+  margin-top: 3px;
+  animation-name: messageFadeIn;
+  animation-duration: 0.7s;
+}
+.generator-poster--winner {
+  padding: 12px;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: var(--field_valid_border);
+  border-radius: 6px;
+  text-align: center;
+  z-index: 99999;
+  margin-top: 8px;
+  animation-name: messageFadeIn;
+  animation-duration: 0.7s;
+}
+.generator-poster--score {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 20px;
+  color: #f5f5f5;
+  font-size: 1.3em;
+  text-align: center;
+  font-weight: 700;
+  background: var(--accent);
+  border-radius: 4px;
+  z-index: 99999;
+  padding: 10px;
+  word-wrap: break-spaces;
+}
+.generator-poster--score div:nth-child(even) {
+  margin-left: 5px;
+}
+.generator-poster--cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+}
+.generator-poster--intro {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: #000000;
+  z-index: 99998;
+  animation: generatorIntroFadeOut 2s 2s forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.generator-poster--intro p {
+  font-size: 3em;
+  color: #ffffff;
+  font-weight: 700;
+  text-transform: uppercase;
+  transform: rotate(-15deg);
+  margin: 0;
+  animation: battleIn 3s;
+}
+.generator-close {
+  display: flex;
+  align-items: center;
+  padding: 0 14px 0 10px;
+  border-radius: 24px;
+  font-size: 0.9em;
+  color: var(--button_secondary_foreground);
+  font-weight: 700;
+  text-align: center;
+  position: fixed;
+  bottom: 20px;
+  left: 12px;
+  z-index: 99999;
+  background: #e3e3e3;
+}
+@keyframes messageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateZ(20px) scale(1.05) translateY(-20px);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateZ(0) scale(1) translateY(0px);
+  }
+}
+@keyframes battleIn {
+  0% {
+    transform: translateX(-100px) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0) rotate(-15deg);
+    opacity: 1;
+  }
+}
+@keyframes generatorIntroFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 
 .newRave-intro {
   display: flex;
@@ -5913,5 +6075,13 @@ a:focus {
 }
 .newRave-intro--description {
   padding-right: 10px;
+}
+
+.avatar {
+  display: block;
+  position: relative;
+}
+.avatar-container {
+  background-size: cover;
 }
 
