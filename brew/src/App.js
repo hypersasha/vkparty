@@ -61,6 +61,7 @@ class App extends Component {
         this.KillMovie = this.KillMovie.bind(this);
         this.OnPartyLeave = this.OnPartyLeave.bind(this);
         this.LeaveParty = this.LeaveParty.bind(this);
+        this.ShowAddMovieAlertHandler = this.ShowAddMovieAlertHandler.bind(this);
 
         this.generatorChecksTimer = null;
 
@@ -77,33 +78,7 @@ class App extends Component {
         });
 
         // This event triggers when app need user confirm to add film.
-        window.addEventListener('showAddMovieAlert', (e) => {
-            if (this.state.activeView === "homeScreen") {
-                this.setState({
-                    popout: <Alert
-                        actionsLayout="vertical"
-                        onClose={() => {
-                        }}
-                        actions={[{
-                            title: 'Добавить',
-                            autoclose: true,
-                            style: 'default',
-                            action: () => {
-                                this.AddMovieConfirmed(e.detail)
-                            }
-                        }, {
-                            title: 'Отмена',
-                            style: 'cancel',
-                            action: () => {
-                                this.OnAddMovieClosed()
-                            }
-                        }]}>
-                        <h2>Добавить фильм?</h2>
-                        <p>Вы уверины, что хотите добавить этот фильм к выбору?</p>
-                    </Alert>
-                })
-            }
-        });
+        window.addEventListener('showAddMovieAlert', this.ShowAddMovieAlertHandler);
 
         // This event triggers when some screen sends Alert.
         window.addEventListener('showErrorAlert', (e) => {
@@ -409,6 +384,34 @@ class App extends Component {
         });
     }
 
+    ShowAddMovieAlertHandler() {
+        if (this.state.activeView === "homeScreen") {
+            this.setState({
+                popout: <Alert
+                    actionsLayout="vertical"
+                    onClose={() => {
+                    }}
+                    actions={[{
+                        title: 'Добавить',
+                        autoclose: true,
+                        style: 'default',
+                        action: () => {
+                            this.AddMovieConfirmed(e.detail)
+                        }
+                    }, {
+                        title: 'Отмена',
+                        style: 'cancel',
+                        action: () => {
+                            this.OnAddMovieClosed()
+                        }
+                    }]}>
+                    <h2>Добавить фильм?</h2>
+                    <p>Вы уверины, что хотите добавить этот фильм к выбору?</p>
+                </Alert>
+            })
+        }
+    }
+
     componentDidMount() {
         if (this.state.user_id < 0) {
             console.warn("Cannot specify your VK user id. Maybe u r using web browser?");
@@ -421,6 +424,11 @@ class App extends Component {
                 this.OnChangePanel("party-info");
             }
         }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('showAddMovieAlert', this.ShowAddMovieAlertHandler);
+        window.removeEventListener('showLeavePartyAlert', this.OnPartyLeave);
     }
 
     render() {
