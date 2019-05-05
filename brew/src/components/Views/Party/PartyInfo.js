@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Avatar, Button, Cell, Div, Footer, Group, Header, InfoRow, Link, List} from "@vkontakte/vkui/src";
+import {Avatar, Button, Cell, CellButton, Div, Footer, Group, Header, InfoRow, Link, List} from "@vkontakte/vkui/src";
 import CreatePartyForm from "../NewParty/CreatePartyForm";
 import PropTypes from 'prop-types';
 import {getTextDate, SERVER_URL, declOfNum} from "../../../lib/Utils";
@@ -23,6 +23,7 @@ class PartyInfo extends Component {
         this.onGuestRemoved = this.onGuestRemoved.bind(this);
         this.UpdateSettings = this.UpdateSettings.bind(this);
         this.onFriendsResponse = this.onFriendsResponse.bind(this);
+        this.onPartyLeave = this.onPartyLeave.bind(this);
 
         // VKWebAppGetFriendsResult
         connect.subscribe(this.onFriendsResponse);
@@ -116,6 +117,14 @@ class PartyInfo extends Component {
                 }
             }
         }
+    }
+
+    /**
+     * Triggers, when user press Leave Event button.
+     */
+    onPartyLeave() {
+        let evt = new CustomEvent('showLeavePartyAlert', {detail: this.props.partyId});
+        window.dispatchEvent(evt);
     }
 
     /**
@@ -250,6 +259,9 @@ class PartyInfo extends Component {
                     :
                     ''
                 }
+                <Group>
+                    {!isOwner ? <CellButton level={"danger"} onClick={this.onPartyLeave}>Покинуть событие</CellButton> : ''}
+                </Group>
             </div>
         );
     }

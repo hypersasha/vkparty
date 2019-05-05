@@ -59,6 +59,8 @@ class App extends Component {
         this.StartMoviesBattle = this.StartMoviesBattle.bind(this);
         this.StopMovieBattle = this.StopMovieBattle.bind(this);
         this.KillMovie = this.KillMovie.bind(this);
+        this.OnPartyLeave = this.OnPartyLeave.bind(this);
+        this.LeaveParty = this.LeaveParty.bind(this);
 
         this.generatorChecksTimer = null;
 
@@ -116,6 +118,8 @@ class App extends Component {
                 </Alert>
             });
         });
+
+        window.addEventListener('showLeavePartyAlert', this.OnPartyLeave);
 
         // VKWebAppGetUserInfoResult
         connect.subscribe((e) => {
@@ -351,6 +355,60 @@ class App extends Component {
         });
     }
 
+    /**
+     * Shows popout alert, for leave party confirmation.
+     * @param e
+     * @constructor
+     */
+    OnPartyLeave(e) {
+        this.setState({
+            popout: <Alert
+                actionsLayout="vertical"
+                onClose={() => {
+                    this.setState({popout: null})
+                }}
+                actions={[{
+                    title: 'Покинуть',
+                    style: 'destructive',
+                    action: () => {this.LeaveParty(e.detail)}
+                }, {
+                    title: 'Отмена',
+                    style: 'cancel',
+                    action: () => {
+                        this.OnAddMovieClosed()
+                    }
+                }]}>
+                <h2>Покинуть событие</h2>
+                <p>Вы уверины, что хотите покинуть это событие?</p>
+            </Alert>
+        });
+    }
+
+    /**
+     * Triggers after leave party confirmation.
+     * @param pid
+     * @constructor
+     */
+    LeaveParty(pid) {
+        axios.delete(SERVER_URL + '/guest', {
+            params: {
+                pid: pid,
+                guest_id: this.state.user_id
+            }
+        }).then((response) => {
+            if (response.data.isOK) {
+                this.GetParties();
+                this.OnChangePanel('raves');
+            } else {
+                let errorEvt = new CustomEvent('showErrorAlert', {detail: 'Не удалось покинуть событие.'});
+                window.dispatchEvent(errorEvt);
+            }
+        }).catch((error) => {
+            let errorEvt = new CustomEvent('showErrorAlert', {detail: 'Не удалось покинуть событие.'});
+            window.dispatchEvent(errorEvt);
+        });
+    }
+
     componentDidMount() {
         if (this.state.user_id < 0) {
             console.warn("Cannot specify your VK user id. Maybe u r using web browser?");
@@ -363,8 +421,6 @@ class App extends Component {
                 this.OnChangePanel("party-info");
             }
         }
-
-        //this.ShowGenerator();
     }
 
     render() {
@@ -421,6 +477,7 @@ class App extends Component {
                             <Party onChangePanel={this.OnChangePanel}
                                    userId={this.state.user_id}
                                    userInfo={this.state.user_info}
+                                   onPartyLeave={this.OnPartyLeave}
                                    onGenerateFilm={this.ShowGenerator}
                                    onShowScreenSpinner={this.ShowScreenSpinner}/>
                         </Panel>
