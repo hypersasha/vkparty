@@ -384,7 +384,7 @@ class App extends Component {
         });
     }
 
-    ShowAddMovieAlertHandler() {
+    ShowAddMovieAlertHandler(e) {
         if (this.state.activeView === "homeScreen") {
             this.setState({
                 popout: <Alert
