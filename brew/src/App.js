@@ -451,6 +451,7 @@ class App extends Component {
             });
             popout = <PopoutWrapper v={"center"} h={"center"} style={{background: '#000000'}}>
                 <Gallery slideWidth={"100%"} style={{height: "100vh", width: "100%"}}
+                         onDragStart={(e) => {e.preventDefault();}}
                          slideIndex={this.state.posterIndex}>
                     {posters}
                 </Gallery>

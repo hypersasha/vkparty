@@ -5,7 +5,7 @@ import {
     HorizontalScroll,
     PanelHeader,
     Tabs,
-    TabsItem, Footer
+    TabsItem, Footer, Tooltip
 } from "@vkontakte/vkui/src";
 
 import {SERVER_URL} from "../../../lib/Utils";
@@ -24,7 +24,8 @@ class Party extends Component {
             panelScope: 'info',
             party_info: {},
             loading: true,
-            loadingFailed: false
+            loadingFailed: false,
+            isBattleTooltip: localStorage.getItem('isBattleTooltip')
         };
 
         this.onNavBack = this.onNavBack.bind(this);
@@ -106,7 +107,7 @@ class Party extends Component {
             return guest.user_id !== gid;
         });
 
-        this.setState( prevState => ({
+        this.setState(prevState => ({
             party_info: {
                 ...prevState.party_info,
                 guests: newGuests
@@ -124,7 +125,7 @@ class Party extends Component {
             return movie.movie.mid !== mid;
         });
 
-        this.setState( prevState => ({
+        this.setState(prevState => ({
             party_info: {
                 ...prevState.party_info,
                 movies: newMovies
@@ -151,15 +152,30 @@ class Party extends Component {
                                       onClick={() => {
                                           this.onChangeScope('info')
                                       }}>Информация</TabsItem>
-                            <TabsItem selected={this.state.panelScope === "movies"}
-                                      onClick={() => {
-                                          this.onChangeScope('movies')
-                                      }}>Битва фильмов</TabsItem>
+                            <Tooltip onClose={() => {
+                                localStorage.setItem('isBattleTooltip', true);
+                                this.setState({
+                                    isBattleTooltip: true
+                                });
+                            }}
+                                     text={"Поможет сделать случайный выбор из фильмов, которые предложили Ваши друзья."}
+                                     cornerOffset={40}
+                                     isShown={!this.state.isBattleTooltip}
+                                     offsetY={3}
+                                     alignX={"right"}
+                            >
+                                <TabsItem selected={this.state.panelScope === "movies"}
+                                          onClick={() => {
+                                              this.onChangeScope('movies')
+                                          }}>Битва фильмов</TabsItem>
+                            </Tooltip>
                         </HorizontalScroll>
                     </Tabs>
                 </FixedLayout>
                 {loading ? <PanelSpinner height={170}/> : ''}
-                {this.state.loadingFailed ? <Footer style={{marginTop: 70}}>Не удаётся установить связь с сервером. Повторите попытку чуть позже.</Footer> : ''}
+                {this.state.loadingFailed ?
+                    <Footer style={{marginTop: 70}}>Не удаётся установить связь с сервером. Повторите попытку чуть
+                        позже.</Footer> : ''}
                 {this.state.panelScope === "info" && !this.state.loading && !this.state.loadingFailed ?
                     <PartyInfo date={this.state.party_info.date}
                                userId={this.props.userId}
@@ -186,7 +202,7 @@ class Party extends Component {
                                 onShowScreenSpinner={this.props.onShowScreenSpinner}
                                 onGenerateFilm={this.props.onGenerateFilm}
                                 onRemoveMovie={this.RemoveMovie}
-                                movies={this.state.party_info.movies} />
+                                movies={this.state.party_info.movies}/>
                     :
                     ''}
             </div>

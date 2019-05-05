@@ -2,7 +2,17 @@ import React, {Component} from 'react';
 
 import Icon24Add from '@vkontakte/icons/dist/24/add';
 
-import {Div, Footer, FormStatus, Group, HeaderButton, Panel, PanelHeader, PullToRefresh} from "@vkontakte/vkui/src";
+import {
+    Div,
+    Footer,
+    FormStatus,
+    Group,
+    HeaderButton,
+    Panel,
+    PanelHeader,
+    PullToRefresh,
+    Tooltip
+} from "@vkontakte/vkui/src";
 
 import {declOfNum} from "../../../lib/Utils";
 
@@ -15,7 +25,8 @@ class HomeScreen extends Component {
         this.state = {
             loading: true,
             loadingFailed: false,
-            futureParties: this.props.parties
+            futureParties: this.props.parties,
+            isAddPartyTooltip: localStorage.getItem('isAddPartyTooltip')
         };
 
         this.openParty = this.openParty.bind(this);
@@ -26,7 +37,8 @@ class HomeScreen extends Component {
         this.props.onChangePanel('party-info');
     }
 
-    componentDidMount() {}
+    componentDidMount() {
+    }
 
     render() {
         const {loading, loadingFailed, parties, onUpdateParties, ...restProps} = this.props;
@@ -41,9 +53,24 @@ class HomeScreen extends Component {
                             </FormStatus>
                         </Div> : ''}
                         <PanelHeader
-                            left={<HeaderButton onClick={() => {
-                                this.props.onChangeView('newParty');
-                            }}><Icon24Add/></HeaderButton>}>
+                            left={
+                                <Tooltip onClose={() => {
+                                    localStorage.setItem('isAddPartyTooltip', true);
+                                    this.setState({
+                                        isAddPartyTooltip: true
+                                    })
+                                }}
+                                         offsetX={5}
+                                         isShown={!this.state.isAddPartyTooltip}
+                                         cornerOffset={-10}
+                                         text={"Создавайте собственные кино-вечеринки и приглашейте в них друзей."}>
+                                    <HeaderButton onClick={() => {
+                                        this.props.onChangeView('newParty');
+                                    }}>
+                                        <Icon24Add/>
+                                    </HeaderButton>
+                                </Tooltip>
+                            }>
                             <div className="rave--header-title">Вечеринки</div>
                         </PanelHeader>
                         {loadingFailed ?
