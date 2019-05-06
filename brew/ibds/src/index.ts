@@ -18,8 +18,10 @@ let server = https.createServer({
 let io = require("socket.io").listen(server);
 
 
-io.on('connection', (socket : any) => {
-   socket.on('ping', () => {
-      socket.send('pong');
-   });
+io.on('connection', (socket: any) => {
+    console.log("Connection!");
+    socket.on('ping', () => {
+        console.log("Ping event!");
+        socket.send('pong');
+    });
 });
