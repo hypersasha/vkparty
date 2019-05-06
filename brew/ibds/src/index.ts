@@ -1,18 +1,23 @@
 import app from "./NetworkLayer";
 import * as dotenv from "dotenv";
 import * as https from "https";
+import * as http from "http";
 import * as fs from "fs";
 import * as SocketIO from "socket.io";
 
 const PORT = 443;
 
 dotenv.config();
-let server = https.createServer({
+/*let server = https.createServer({
     key: fs.readFileSync('./private.key'),
     cert: fs.readFileSync('./certificate.crt'),
     passphrase: 'coldmove'
 }, app).listen(PORT, () => {
     console.log("VK Rave Server started on port " + PORT)
+});*/
+
+let server = http.createServer(app).listen(80, ()=> {
+    console.log("HTTP SERVER STARTED ON 80 port");
 });
 
 let io = require("socket.io").listen(server);
