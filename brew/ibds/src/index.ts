@@ -19,9 +19,8 @@ let io = require("socket.io").listen(server);
 
 io.sockets.on('connection', (socket: any) => {
     console.log("Connection!");
-    io.emit('pong',{});
     socket.on('getMe', () => {
-        console.log("Ping event!");
+        console.log("getMe event!");
         io.emit('pong', {});
     });
     socket.on('disconnect', () => {
