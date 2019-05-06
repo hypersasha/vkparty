@@ -25,3 +25,7 @@ io.on('connection', (socket: any) => {
         socket.send('pong');
     });
 });
+
+io.on('disconnect', (socket: any) => {
+    console.log("Disonnected!");
+})
