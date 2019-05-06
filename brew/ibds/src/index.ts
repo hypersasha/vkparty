@@ -15,7 +15,7 @@ let server = https.createServer({
     console.log("VK Rave Server started on port " + PORT)
 });
 
-let io = require("socket.io")(server);
+let io = require("socket.io").listen(server);
 
 
 io.on('connection', (socket : any) => {
