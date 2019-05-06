@@ -17,8 +17,7 @@ let server = https.createServer({
 
 let io = require("socket.io").listen(server);
 
-
-io.on('connection', (socket: any) => {
+io.sockets.on('connection', (socket: any) => {
     console.log("Connection!");
     socket.on('ping', () => {
         console.log("Ping event!");
