@@ -22,7 +22,7 @@ io.on('connection', (socket: any) => {
     console.log("Connection!");
     socket.on('ping', () => {
         console.log("Ping event!");
-        socket.emit('pong', {});
+        io.emit('pong', {});
     });
     socket.on('disconnect', () => {
         console.log("Disconnected");
